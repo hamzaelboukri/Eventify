@@ -52,6 +52,23 @@ services:
       retries: 3
       start_period: 40s
 
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eventify-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api}
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    networks:
+      - eventify-network
+
 networks:
   eventify-network:
     driver: bridge
