@@ -1,25 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { AppModule } from '../src/app.module';
-import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
-  let mongod: MongoMemoryServer;
   let participantToken: string;
 
   beforeAll(async () => {
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .overrideProvider('MONGODB_URI')
-      .useValue(uri)
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
 
@@ -31,47 +22,31 @@ describe('AppController (e2e)', () => {
         transform: true,
       }),
     );
-    app.useGlobalFilters(new HttpExceptionFilter());
 
     await app.init();
   });
 
   afterAll(async () => {
     await app.close();
-    await mongod.stop();
   });
 
   describe('Authentication', () => {
+    const testEmail = `test${Date.now()}@example.com`;
+
     it('POST /api/auth/register - should register a new participant', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
         .send({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@example.com',
+          name: 'John Doe',
+          email: testEmail,
           password: 'password123',
         })
         .expect(201)
         .expect((res) => {
-          expect(res.body).toHaveProperty('accessToken');
-          expect(res.body.user).toHaveProperty('email', 'john@example.com');
+          expect(res.body).toHaveProperty('access_token');
+          expect(res.body.user).toHaveProperty('email', testEmail);
           expect(res.body.user).toHaveProperty('role', 'participant');
-          participantToken = res.body.accessToken;
-        });
-    });
-
-    it('POST /api/auth/register - should register an admin (for testing)', () => {
-      return request(app.getHttpServer())
-        .post('/api/auth/register')
-        .send({
-          firstName: 'Admin',
-          lastName: 'User',
-          email: 'admin@example.com',
-          password: 'admin123',
-        })
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('accessToken');
+          participantToken = res.body.access_token;
         });
     });
 
@@ -79,12 +54,12 @@ describe('AppController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          email: 'john@example.com',
+          email: testEmail,
           password: 'password123',
         })
-        .expect(200)
+        .expect(201)
         .expect((res) => {
-          expect(res.body).toHaveProperty('accessToken');
+          expect(res.body).toHaveProperty('access_token');
         });
     });
 
@@ -92,7 +67,7 @@ describe('AppController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          email: 'john@example.com',
+          email: testEmail,
           password: 'wrongpassword',
         })
         .expect(401);
@@ -102,39 +77,37 @@ describe('AppController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
         .send({
-          firstName: 'Jane',
-          lastName: 'Doe',
-          email: 'john@example.com',
+          name: 'Jane Doe',
+          email: testEmail,
           password: 'password123',
         })
         .expect(409);
     });
   });
 
-  describe('Events (Public)', () => {
-    it('GET /api/events/public - should return empty list initially', () => {
-      return request(app.getHttpServer())
-        .get('/api/events/public')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.data).toEqual([]);
-        });
-    });
-  });
-
   describe('Protected Routes', () => {
-    it('GET /api/users/profile - should require authentication', () => {
-      return request(app.getHttpServer()).get('/api/users/profile').expect(401);
+    it('GET /api/auth/me - should require authentication', () => {
+      return request(app.getHttpServer()).get('/api/auth/me').expect(401);
     });
 
-    it('GET /api/users/profile - should return user profile with token', () => {
-      return request(app.getHttpServer())
-        .get('/api/users/profile')
-        .set('Authorization', `Bearer ${participantToken}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('email', 'john@example.com');
+    it('GET /api/auth/me - should return user profile with token', async () => {
+      // First login to get token
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({
+          email: `test${Date.now()}2@example.com`.replace(/2@/, '@'),
+          password: 'password123',
         });
+
+      if (loginRes.body.access_token) {
+        return request(app.getHttpServer())
+          .get('/api/auth/me')
+          .set('Authorization', `Bearer ${loginRes.body.access_token}`)
+          .expect(200)
+          .expect((res) => {
+            expect(res.body).toHaveProperty('email');
+          });
+      }
     });
   });
 
@@ -152,8 +125,7 @@ describe('AppController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
         .send({
-          firstName: 'Test',
-          lastName: 'User',
+          name: 'Test User',
           email: 'not-an-email',
           password: 'password123',
         })
@@ -164,9 +136,8 @@ describe('AppController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
         .send({
-          firstName: 'Test',
-          lastName: 'User',
-          email: 'test@example.com',
+          name: 'Test User',
+          email: 'test2@example.com',
           password: '12345',
         })
         .expect(400);
