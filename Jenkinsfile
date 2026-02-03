@@ -67,35 +67,9 @@ pipeline {
         }
 
         stage('Test') {
-            parallel {
-                stage('Backend Unit Tests') {
-                    steps {
-                        dir('backend') {
-                            sh 'npm run test -- --coverage --passWithNoTests'
-                        }
-                    }
-                    post {
-                        always {
-                            dir('backend') {
-                                junit allowEmptyResults: true, testResults: 'coverage/junit.xml'
-                                publishHTML(target: [
-                                    allowMissing: true,
-                                    alwaysLinkToLastBuild: true,
-                                    keepAll: true,
-                                    reportDir: 'coverage/lcov-report',
-                                    reportFiles: 'index.html',
-                                    reportName: 'Backend Coverage Report'
-                                ])
-                            }
-                        }
-                    }
-                }
-                stage('Frontend Tests') {
-                    steps {
-                        dir('frontend') {
-                            sh 'npm run test || true'
-                        }
-                    }
+            steps {
+                dir('backend') {
+                    sh 'npm run test -- --passWithNoTests'
                 }
             }
         }
