@@ -187,7 +187,6 @@ pipeline {
                         echo '⚠️ Docker not available - skipping Docker push stage'
                     }
                 }
-                }
             }
         }
 
