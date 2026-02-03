@@ -131,23 +131,26 @@ pipeline {
         }
 
         stage('Build Docker Images') {
-            parallel {
-                stage('Build Backend Image') {
-                    steps {
-                        dir('backend') {
-                            script {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/r-event-backend:${env.GIT_COMMIT_SHORT} -t ${DOCKERHUB_USERNAME}/r-event-backend:latest ."
+            steps {
+                script {
+                    // Check if Docker is available
+                    def dockerAvailable = sh(script: 'docker info > /dev/null 2>&1', returnStatus: true) == 0
+                    if (dockerAvailable) {
+                        parallel(
+                            'Build Backend Image': {
+                                dir('backend') {
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/r-event-backend:${env.GIT_COMMIT_SHORT} -t ${DOCKERHUB_USERNAME}/r-event-backend:latest ."
+                                }
+                            },
+                            'Build Frontend Image': {
+                                dir('frontend') {
+                                    sh "docker build -t ${DOCKERHUB_USERNAME}/r-event-frontend:${env.GIT_COMMIT_SHORT} -t ${DOCKERHUB_USERNAME}/r-event-frontend:latest ."
+                                }
                             }
-                        }
-                    }
-                }
-                stage('Build Frontend Image') {
-                    steps {
-                        dir('frontend') {
-                            script {
-                                sh "docker build -t ${DOCKERHUB_USERNAME}/r-event-frontend:${env.GIT_COMMIT_SHORT} -t ${DOCKERHUB_USERNAME}/r-event-frontend:latest ."
-                            }
-                        }
+                        )
+                    } else {
+                        echo '⚠️ Docker not available - skipping Docker build stage'
+                        echo 'To enable Docker: mount /var/run/docker.sock to Jenkins container'
                     }
                 }
             }
@@ -163,21 +166,27 @@ pipeline {
             }
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            
-                            # Push Backend images
-                            docker push ${DOCKERHUB_USERNAME}/r-event-backend:${GIT_COMMIT_SHORT}
-                            docker push ${DOCKERHUB_USERNAME}/r-event-backend:latest
-                            
-                            # Push Frontend images
-                            docker push ${DOCKERHUB_USERNAME}/r-event-frontend:${GIT_COMMIT_SHORT}
-                            docker push ${DOCKERHUB_USERNAME}/r-event-frontend:latest
-                            
-                            docker logout
-                        '''
+                    def dockerAvailable = sh(script: 'docker info > /dev/null 2>&1', returnStatus: true) == 0
+                    if (dockerAvailable) {
+                        withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                            sh '''
+                                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                                
+                                # Push Backend images
+                                docker push ${DOCKERHUB_USERNAME}/r-event-backend:${GIT_COMMIT_SHORT}
+                                docker push ${DOCKERHUB_USERNAME}/r-event-backend:latest
+                                
+                                # Push Frontend images
+                                docker push ${DOCKERHUB_USERNAME}/r-event-frontend:${GIT_COMMIT_SHORT}
+                                docker push ${DOCKERHUB_USERNAME}/r-event-frontend:latest
+                                
+                                docker logout
+                            '''
+                        }
+                    } else {
+                        echo '⚠️ Docker not available - skipping Docker push stage'
                     }
+                }
                 }
             }
         }
