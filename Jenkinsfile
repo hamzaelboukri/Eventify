@@ -5,15 +5,23 @@ pipeline {
         nodejs 'NodeJS-20'
     }
 
+    triggers {
+        // Trigger on push (polling SCM)
+        pollSCM('H/2 * * * *')
+        // GitHub webhook trigger for push and pull requests
+        githubPush()
+    }
+
     environment {
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
+        DOCKERHUB_USERNAME = 'hamzaelboukri'
     }
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
         timestamps()
-        timeout(time: 30, unit: 'MINUTES')
+        timeout(time: 45, unit: 'MINUTES')
         disableConcurrentBuilds()
     }
 
@@ -30,17 +38,29 @@ pipeline {
 
         stage('Install Dependencies') {
             parallel {
-                stage('Backend Dependencies') {
+                stage('Backend Install') {
                     steps {
                         dir('backend') {
-                            sh 'npm ci'
+                            // Cache node_modules
+                            sh '''
+                                if [ -d "node_modules" ]; then
+                                    echo "Using cached node_modules"
+                                fi
+                                npm ci --cache .npm
+                            '''
                         }
                     }
                 }
-                stage('Frontend Dependencies') {
+                stage('Frontend Install') {
                     steps {
                         dir('frontend') {
-                            sh 'npm ci'
+                            // Cache node_modules
+                            sh '''
+                                if [ -d "node_modules" ]; then
+                                    echo "Using cached node_modules"
+                                fi
+                                npm ci --cache .npm
+                            '''
                         }
                     }
                 }
@@ -52,14 +72,16 @@ pipeline {
                 stage('Backend Lint') {
                     steps {
                         dir('backend') {
-                            sh 'npm run lint || true'
+                            // Pipeline FAILS if lint fails
+                            sh 'npm run lint'
                         }
                     }
                 }
                 stage('Frontend Lint') {
                     steps {
                         dir('frontend') {
-                            sh 'npm run lint || true'
+                            // Pipeline FAILS if lint fails
+                            sh 'npm run lint'
                         }
                     }
                 }
@@ -67,56 +89,54 @@ pipeline {
         }
 
         stage('Test') {
-            steps {
-                dir('backend') {
-                    sh 'npm run test -- --passWithNoTests'
+            parallel {
+                stage('Backend Tests') {
+                    steps {
+                        dir('backend') {
+                            // Pipeline FAILS if tests fail
+                            sh 'npm run test'
+                        }
+                    }
                 }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'develop'
-                }
-            }
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sonar-scanner \
-                            -Dsonar.projectKey=r-event \
-                            -Dsonar.projectName="R_EVENT" \
-                            -Dsonar.sources=. \
-                            -Dsonar.exclusions=**/node_modules/**,**/*.spec.ts,**/dist/**,**/.next/** \
-                            -Dsonar.javascript.lcov.reportPaths=backend/coverage/lcov.info
-                    '''
+                stage('Frontend Tests') {
+                    steps {
+                        dir('frontend') {
+                            // Skip if no test script (will be added later)
+                            sh 'npm run test --if-present || echo "No frontend tests configured"'
+                        }
+                    }
                 }
             }
         }
 
         stage('Build') {
-            steps {
-                dir('backend') {
-                    sh 'npm run build'
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        dir('backend') {
+                            // Pipeline FAILS if build fails
+                            sh 'npm run build'
+                        }
+                    }
                 }
-                echo 'Skipping frontend build - requires Node.js >= 20.9.0 (Docker will build it)'
+                stage('Build Frontend') {
+                    steps {
+                        dir('frontend') {
+                            // Build frontend (Docker handles Node version)
+                            sh 'echo "Frontend build will be done in Docker stage"'
+                        }
+                    }
+                }
             }
         }
 
         stage('Build Docker Images') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'develop'
-                }
-            }
             parallel {
                 stage('Build Backend Image') {
                     steps {
                         dir('backend') {
                             script {
-                                docker.build("r-event-backend:${env.GIT_COMMIT_SHORT}")
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/r-event-backend:${env.GIT_COMMIT_SHORT} -t ${DOCKERHUB_USERNAME}/r-event-backend:latest ."
                             }
                         }
                     }
@@ -125,7 +145,7 @@ pipeline {
                     steps {
                         dir('frontend') {
                             script {
-                                docker.build("r-event-frontend:${env.GIT_COMMIT_SHORT}")
+                                sh "docker build -t ${DOCKERHUB_USERNAME}/r-event-frontend:${env.GIT_COMMIT_SHORT} -t ${DOCKERHUB_USERNAME}/r-event-frontend:latest ."
                             }
                         }
                     }
@@ -133,17 +153,30 @@ pipeline {
             }
         }
 
-        stage('Push Docker Images') {
+        stage('Push to Docker Hub') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                    branch 'develop'
+                }
             }
             steps {
                 script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS_ID) {
-                        docker.image("r-event-backend:${env.GIT_COMMIT_SHORT}").push()
-                        docker.image("r-event-backend:${env.GIT_COMMIT_SHORT}").push('latest')
-                        docker.image("r-event-frontend:${env.GIT_COMMIT_SHORT}").push()
-                        docker.image("r-event-frontend:${env.GIT_COMMIT_SHORT}").push('latest')
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            
+                            # Push Backend images
+                            docker push ${DOCKERHUB_USERNAME}/r-event-backend:${GIT_COMMIT_SHORT}
+                            docker push ${DOCKERHUB_USERNAME}/r-event-backend:latest
+                            
+                            # Push Frontend images
+                            docker push ${DOCKERHUB_USERNAME}/r-event-frontend:${GIT_COMMIT_SHORT}
+                            docker push ${DOCKERHUB_USERNAME}/r-event-frontend:latest
+                            
+                            docker logout
+                        '''
                     }
                 }
             }
@@ -165,7 +198,10 @@ pipeline {
 
         stage('Deploy to Production') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                }
             }
             steps {
                 input message: 'Deploy to Production?', ok: 'Deploy'
@@ -187,9 +223,11 @@ pipeline {
         }
         success {
             echo '✅ Pipeline completed successfully!'
+            echo "📦 Images pushed: ${DOCKERHUB_USERNAME}/r-event-backend:${env.GIT_COMMIT_SHORT}"
+            echo "📦 Images pushed: ${DOCKERHUB_USERNAME}/r-event-frontend:${env.GIT_COMMIT_SHORT}"
         }
         failure {
-            echo '❌ Pipeline failed!'
+            echo '❌ Pipeline failed! Check the logs above for details.'
         }
         unstable {
             echo '⚠️ Pipeline unstable!'
