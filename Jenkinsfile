@@ -1,13 +1,13 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS-20'
+    }
+
     environment {
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
-        MONGO_ROOT_USERNAME = credentials('mongo-root-username')
-        MONGO_ROOT_PASSWORD = credentials('mongo-root-password')
-        JWT_SECRET = credentials('jwt-secret')
-        SONAR_TOKEN = credentials('sonar-token')
     }
 
     options {
@@ -217,31 +217,18 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            node('') {
+                cleanWs()
+            }
         }
         success {
             echo '✅ Pipeline completed successfully!'
-            slackSend(
-                channel: '#deployments',
-                color: 'good',
-                message: "✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${env.GIT_BRANCH_NAME}\n${env.BUILD_URL}"
-            )
         }
         failure {
             echo '❌ Pipeline failed!'
-            slackSend(
-                channel: '#deployments',
-                color: 'danger',
-                message: "❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${env.GIT_BRANCH_NAME}\n${env.BUILD_URL}"
-            )
         }
         unstable {
             echo '⚠️ Pipeline unstable!'
-            slackSend(
-                channel: '#deployments',
-                color: 'warning',
-                message: "⚠️ Build UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${env.GIT_BRANCH_NAME}\n${env.BUILD_URL}"
-            )
         }
     }
 }
