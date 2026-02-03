@@ -96,21 +96,11 @@ pipeline {
         }
 
         stage('Build') {
-            parallel {
-                stage('Build Backend') {
-                    steps {
-                        dir('backend') {
-                            sh 'npm run build'
-                        }
-                    }
+            steps {
+                dir('backend') {
+                    sh 'npm run build'
                 }
-                stage('Build Frontend') {
-                    steps {
-                        dir('frontend') {
-                            sh 'npm run build'
-                        }
-                    }
-                }
+                echo 'Skipping frontend build - requires Node.js >= 20.9.0 (Docker will build it)'
             }
         }
 
