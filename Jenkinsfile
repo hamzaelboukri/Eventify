@@ -149,7 +149,7 @@ pipeline {
                             }
                         )
                     } else {
-                        echo '⚠️ Docker not available - skipping Docker build stage'
+                        echo 'Docker not available - skipping Docker build stage'
                         echo 'To enable Docker: mount /var/run/docker.sock to Jenkins container'
                     }
                 }
@@ -177,7 +177,7 @@ pipeline {
                             '''
                         }
                     } else {
-                        echo '⚠️ Docker not available - skipping Docker push stage'
+                        echo 'Docker not available - skipping Docker push stage'
                     }
                 }
             }
@@ -221,15 +221,15 @@ pipeline {
             cleanWs()
         }
         success {
-            echo '✅ Pipeline completed successfully!'
-            echo "📦 Images pushed: ${DOCKERHUB_USERNAME}/r-event-backend:${env.GIT_COMMIT_SHORT}"
-            echo "📦 Images pushed: ${DOCKERHUB_USERNAME}/r-event-frontend:${env.GIT_COMMIT_SHORT}"
+            echo 'Pipeline completed successfully!'
+            echo "Images pushed: ${DOCKERHUB_USERNAME}/r-event-backend:${env.GIT_COMMIT_SHORT}"
+            echo "Images pushed: ${DOCKERHUB_USERNAME}/r-event-frontend:${env.GIT_COMMIT_SHORT}"
         }
         failure {
-            echo '❌ Pipeline failed! Check the logs above for details.'
+            echo 'Pipeline failed! Check the logs above for details.'
         }
         unstable {
-            echo '⚠️ Pipeline unstable!'
+            echo 'Pipeline unstable!'
         }
     }
 }
