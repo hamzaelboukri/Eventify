@@ -157,13 +157,6 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                    branch 'develop'
-                }
-            }
             steps {
                 script {
                     def dockerAvailable = sh(script: 'docker info > /dev/null 2>&1', returnStatus: true) == 0
