@@ -1,89 +1,111 @@
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Card } from "@/components/ui";
-import { cn } from "@/lib/utils";
-import type { Event } from "@/types";
+'use client';
 
-// Icons
-const CalendarIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);
-
-const LocationIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-    />
-  </svg>
-);
+import React from 'react';
+import Link from 'next/link';
+import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Event, EventStatus } from '@/types';
+import { Card, CardContent, Badge } from '@/components/ui';
+import { formatDate, getAvailableSpots, getFillRate, cn } from '@/lib/utils';
+import { EVENT_STATUS_CONFIG } from '@/lib/constants';
 
 interface EventCardProps {
   event: Event;
-  className?: string;
+  showStatus?: boolean;
+  isAdmin?: boolean;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, className }) => {
-  const defaultImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop";
-  
+export default function EventCard({ event, showStatus = false, isAdmin = false }: EventCardProps) {
+  const availableSpots = getAvailableSpots(event.capacity, event.reservedSpots);
+  const fillRate = getFillRate(event.capacity, event.reservedSpots);
+  const eventId = event.id || event._id;
+  const href = isAdmin ? `/dashboard/admin/events/${eventId}` : `/events/${eventId}`;
+
   return (
-    <Link href={`/events/${event.id}`}>
-      <Card hoverable className={cn("group", className)}>
+    <Link href={href}>
+      <Card hover className="h-full">
         {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <Image
-            src={event.image || defaultImage}
-            alt={event.title}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-          />
-          {/* Category Badge */}
-          <div className="absolute top-4 left-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-medium">
-            {event.category}
+        <div className="relative h-48 bg-gradient-to-br from-primary-500 to-secondary-500">
+          {event.image && (
+            <img
+              src={event.image}
+              alt={event.title}
+              className="w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute top-3 left-3">
+            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-gray-700">
+              {event.category}
+            </span>
           </div>
-          {/* Price Badge */}
-          <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full font-semibold">
-            {event.price || "Gratuit"}
-          </div>
+          {showStatus && (
+            <div className="absolute top-3 right-3">
+              <Badge
+                variant={
+                  event.status === EventStatus.PUBLISHED
+                    ? 'success'
+                    : event.status === EventStatus.CANCELED
+                    ? 'danger'
+                    : 'default'
+                }
+              >
+                {EVENT_STATUS_CONFIG[event.status]?.label || event.status}
+              </Badge>
+            </div>
+          )}
         </div>
 
-        {/* Content */}
-        <div className="p-5">
-          <h3 className="text-white font-semibold text-lg mb-3 group-hover:text-blue-500 transition-colors line-clamp-2">
-            {event.title}
-          </h3>
-          
-          <div className="space-y-2">
-            <div className="flex items-center text-slate-400 text-sm">
-              <CalendarIcon />
-              <span className="ml-2">{event.date}</span>
+        <CardContent className="space-y-4">
+          {/* Title */}
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{event.title}</h3>
+
+          {/* Details */}
+          <div className="space-y-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-primary-500" />
+              <span>{formatDate(event.date)}</span>
             </div>
-            
-            <div className="flex items-center text-slate-400 text-sm">
-              <LocationIcon />
-              <span className="ml-2">{event.location}</span>
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-primary-500" />
+              <span>{event.time}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-primary-500" />
+              <span className="truncate">{event.location}</span>
             </div>
           </div>
-        </div>
+
+          {/* Capacity */}
+          <div className="pt-2 border-t">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Users className="h-4 w-4" />
+                <span>
+                  {availableSpots > 0
+                    ? `${availableSpots} places disponibles`
+                    : 'Complet'}
+                </span>
+              </div>
+              <span className="text-sm font-medium text-primary-600">{fillRate}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={cn(
+                  'h-2 rounded-full transition-all',
+                  fillRate >= 90 ? 'bg-red-500' : fillRate >= 70 ? 'bg-yellow-500' : 'bg-primary-500'
+                )}
+                style={{ width: `${fillRate}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Price */}
+          {event.price && (
+            <div className="text-lg font-bold text-primary-600">
+              {event.price === '0' || event.price === 'Gratuit' ? 'Gratuit' : `${event.price} €`}
+            </div>
+          )}
+        </CardContent>
       </Card>
     </Link>
   );
-};
-
-export default EventCard;
+}

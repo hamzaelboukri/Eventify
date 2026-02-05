@@ -1,56 +1,40 @@
-import React from "react";
-import { cn } from "@/lib/utils";
-import type { InputProps } from "@/types";
+import React from 'react';
+import { cn } from '@/lib/utils';
 
-export const Input: React.FC<InputProps> = ({
-  label,
-  placeholder,
-  type = "text",
-  value,
-  onChange,
-  error,
-  disabled = false,
-  required = false,
-  className,
-  icon,
-}) => {
-  return (
-    <div className="w-full">
-      {label && (
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
-      <div className="relative">
-        {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-            {icon}
-          </div>
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, label, error, helperText, id, ...props }, ref) => {
+    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+          </label>
         )}
         <input
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          required={required}
+          ref={ref}
+          id={inputId}
           className={cn(
-            "w-full bg-slate-800/50 text-white placeholder-slate-400 rounded-xl",
-            "py-4 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500",
-            "border border-slate-700 hover:border-slate-600 transition-colors",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            icon && "pl-12",
-            error && "border-red-500 focus:ring-red-500",
+            'w-full px-4 py-2 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+            error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300',
             className
           )}
+          {...props}
         />
+        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
       </div>
-      {error && (
-        <p className="mt-2 text-sm text-red-500">{error}</p>
-      )}
-    </div>
-  );
-};
+    );
+  }
+);
+
+Input.displayName = 'Input';
 
 export default Input;

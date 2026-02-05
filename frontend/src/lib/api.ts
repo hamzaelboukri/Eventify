@@ -1,88 +1,41 @@
-// API Service for backend communication
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import Cookies from 'js-cookie';
+import { API_URL } from './constants';
 
-interface ApiResponse<T = unknown> {
-  data?: T;
-  error?: string;
-}
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-// Generic fetch wrapper with error handling
-async function fetchApi<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  try {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    };
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        error: data.message || 'Une erreur est survenue',
-      };
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = Cookies.get('token');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    return { data };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      error: 'Erreur de connexion au serveur',
-    };
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-}
+);
 
-// Auth API
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+// Response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      // Clear token and redirect to login
+      Cookies.remove('token');
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
-export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-  access_token: string;
-}
-
-export const authApi = {
-  login: (credentials: LoginRequest) =>
-    fetchApi<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    }),
-
-  register: (data: RegisterRequest) =>
-    fetchApi<AuthResponse>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
-  getProfile: () =>
-    fetchApi<AuthResponse['user']>('/auth/me', {
-      method: 'GET',
-    }),
-};
-
-export default fetchApi;
+export default api;

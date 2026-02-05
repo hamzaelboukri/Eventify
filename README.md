@@ -126,6 +126,33 @@ backend/
    http://localhost:3000/api
    ```
 
+### Frontend (Next.js + Tailwind)
+
+1. **Install dependencies**
+  ```bash
+  cd frontend
+  npm install
+  ```
+
+2. **Configure environment**
+  ```bash
+  cp .env.example .env.local
+  # NEXT_PUBLIC_API_URL=http://localhost:3000/api
+  ```
+
+3. **Run the application**
+  ```bash
+  npm run dev -- --hostname 0.0.0.0 --port 3000
+  ```
+
+4. **Available scripts**
+  ```bash
+  npm run lint      # Next.js linting
+  npm run test      # React Testing Library + Jest
+  npm run build     # Next.js production build
+  npm run start     # Serve production build
+  ```
+
 ## 📡 API Endpoints
 
 ### Authentication
