@@ -24,10 +24,10 @@ export default function ParticipantDashboardPage() {
     fetchPublishedEvents({ limit: 4 });
   }, [fetchMyReservations, fetchPublishedEvents]);
 
-  const pendingReservations = myReservations.filter(
+  const pendingReservations = (myReservations || []).filter(
     (r) => r.status === ReservationStatus.PENDING
   ).length;
-  const confirmedReservations = myReservations.filter(
+  const confirmedReservations = (myReservations || []).filter(
     (r) => r.status === ReservationStatus.CONFIRMED
   ).length;
 
@@ -53,7 +53,7 @@ export default function ParticipantDashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total réservations</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{myReservations.length}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{(myReservations || []).length}</p>
                 </div>
                 <div className="p-3 rounded-xl bg-blue-500">
                   <ClipboardList className="h-6 w-6 text-white" />
@@ -107,7 +107,7 @@ export default function ParticipantDashboardPage() {
               </div>
             </div>
             <div className="divide-y divide-gray-100">
-              {myReservations.slice(0, 5).map((reservation: Reservation) => {
+              {(myReservations || []).slice(0, 5).map((reservation: Reservation) => {
                 const event = reservation.event as Event;
                 return (
                   <div
@@ -138,7 +138,7 @@ export default function ParticipantDashboardPage() {
                   </div>
                 );
               })}
-              {myReservations.length === 0 && (
+              {(myReservations || []).length === 0 && (
                 <div className="p-8 text-center text-gray-500">
                   <p>Aucune réservation</p>
                   <Link href="/events">
@@ -166,7 +166,7 @@ export default function ParticipantDashboardPage() {
               </div>
             </div>
             <div className="divide-y divide-gray-100">
-              {events.slice(0, 4).map((event: Event) => (
+              {(events || []).slice(0, 4).map((event: Event) => (
                 <Link
                   key={event.id || event._id}
                   href={`/events/${event.id || event._id}`}
@@ -185,7 +185,7 @@ export default function ParticipantDashboardPage() {
                   </div>
                 </Link>
               ))}
-              {events.length === 0 && (
+              {(events || []).length === 0 && (
                 <div className="p-8 text-center text-gray-500">
                   Aucun événement disponible
                 </div>

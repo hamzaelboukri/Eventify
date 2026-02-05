@@ -130,7 +130,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {mounted && <EventsGrid events={events.slice(0, 6)} isLoading={isLoading} />}
+            {mounted && <EventsGrid events={(events || []).slice(0, 6)} isLoading={isLoading} />}
           </div>
         </section>
 
