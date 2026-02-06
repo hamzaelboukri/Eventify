@@ -22,14 +22,14 @@ export default function EventCard({ event, showStatus = false, isAdmin = false }
 
   return (
     <Link href={href}>
-      <Card hover className="h-full rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-200 border border-gray-100 bg-white">
+      <Card hover className="h-full">
         {/* Image */}
-        <div className="relative h-48 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-t-2xl overflow-hidden">
+        <div className="relative h-48 bg-gradient-to-br from-primary-500 to-secondary-500">
           {event.image && (
             <img
               src={event.image}
               alt={event.title}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+              className="w-full h-full object-cover"
             />
           )}
           <div className="absolute top-3 left-3">

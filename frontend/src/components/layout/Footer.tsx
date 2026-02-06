@@ -25,22 +25,22 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">Liens Rapides</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors hover:underline underline-offset-4 py-1 block rounded focus:outline-none focus:ring-2 focus:ring-primary-400">
+                <Link href="/" className="text-gray-400 hover:text-white transition-colors">
                   Accueil
                 </Link>
               </li>
               <li>
-                <Link href="/events" className="text-gray-400 hover:text-white transition-colors hover:underline underline-offset-4 py-1 block rounded focus:outline-none focus:ring-2 focus:ring-primary-400">
+                <Link href="/events" className="text-gray-400 hover:text-white transition-colors">
                   Événements
                 </Link>
               </li>
               <li>
-                <Link href="/login" className="text-gray-400 hover:text-white transition-colors hover:underline underline-offset-4 py-1 block rounded focus:outline-none focus:ring-2 focus:ring-primary-400">
+                <Link href="/login" className="text-gray-400 hover:text-white transition-colors">
                   Connexion
                 </Link>
               </li>
               <li>
-                <Link href="/register" className="text-gray-400 hover:text-white transition-colors hover:underline underline-offset-4 py-1 block rounded focus:outline-none focus:ring-2 focus:ring-primary-400">
+                <Link href="/register" className="text-gray-400 hover:text-white transition-colors">
                   Inscription
                 </Link>
               </li>
@@ -74,10 +74,10 @@ export default function Footer() {
             © {new Date().getFullYear()} {APP_NAME}. Tous droits réservés.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="#" className="text-gray-400 hover:text-white text-sm hover:underline underline-offset-4 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-primary-400">
+            <Link href="#" className="text-gray-400 hover:text-white text-sm">
               Mentions légales
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white text-sm hover:underline underline-offset-4 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-primary-400">
+            <Link href="#" className="text-gray-400 hover:text-white text-sm">
               Politique de confidentialité
             </Link>
           </div>

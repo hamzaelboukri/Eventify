@@ -61,8 +61,8 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'text-gray-600 hover:text-primary-600 transition-colors font-medium hover:underline underline-offset-4 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-primary-400',
-                  pathname === link.href && 'text-primary-600 underline'
+                  'text-gray-600 hover:text-primary-600 transition-colors font-medium',
+                  pathname === link.href && 'text-primary-600'
                 )}
               >
                 {link.label}
@@ -98,7 +98,7 @@ export default function Header() {
                       <Link
                         key={link.href}
                         href={link.href}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsProfileOpen(false)}
                       >
                         {link.label}
@@ -145,8 +145,8 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'text-gray-600 hover:text-primary-600 transition-colors font-medium hover:underline underline-offset-4 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-primary-400',
-                    pathname === link.href && 'text-primary-600 underline'
+                    'text-gray-600 hover:text-primary-600 transition-colors font-medium',
+                    pathname === link.href && 'text-primary-600'
                   )}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -161,7 +161,7 @@ export default function Header() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="text-gray-600 hover:text-primary-600 transition-colors font-medium hover:underline underline-offset-4 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      className="text-gray-600 hover:text-primary-600 transition-colors font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {link.label}
