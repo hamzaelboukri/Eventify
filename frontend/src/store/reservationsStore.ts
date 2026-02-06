@@ -44,13 +44,15 @@ export const useReservationsStore = create<ReservationsState>()((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.get<PaginatedResponse<Reservation>>('/reservations/admin/all', { params });
+      const data = response.data;
+      const reservationsArray = (data as unknown as { reservations?: Reservation[] }).reservations || data.data || [];
       set({
-        reservations: response.data.data,
+        reservations: Array.isArray(reservationsArray) ? reservationsArray : [],
         pagination: {
-          total: response.data.total,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: response.data.totalPages,
+          total: data.total || 0,
+          page: data.page || 1,
+          limit: data.limit || 10,
+          totalPages: data.totalPages || 0,
         },
         isLoading: false,
       });
@@ -64,13 +66,15 @@ export const useReservationsStore = create<ReservationsState>()((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.get<PaginatedResponse<Reservation>>('/reservations/my-reservations', { params });
+      const data = response.data;
+      const reservationsArray = (data as unknown as { reservations?: Reservation[] }).reservations || data.data || [];
       set({
-        myReservations: response.data.data,
+        myReservations: Array.isArray(reservationsArray) ? reservationsArray : [],
         pagination: {
-          total: response.data.total,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: response.data.totalPages,
+          total: data.total || 0,
+          page: data.page || 1,
+          limit: data.limit || 10,
+          totalPages: data.totalPages || 0,
         },
         isLoading: false,
       });
@@ -83,14 +87,18 @@ export const useReservationsStore = create<ReservationsState>()((set) => ({
   fetchReservationsByEvent: async (eventId: string, params?: QueryParams) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get<PaginatedResponse<Reservation>>(`/reservations/event/${eventId}`, { params });
+      const response = await api.get<PaginatedResponse<Reservation>>(`/reservations/admin/all`, { 
+        params: { ...params, eventId } 
+      });
+      const data = response.data;
+      const reservationsArray = (data as unknown as { reservations?: Reservation[] }).reservations || data.data || [];
       set({
-        reservations: response.data.data,
+        reservations: Array.isArray(reservationsArray) ? reservationsArray : [],
         pagination: {
-          total: response.data.total,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: response.data.totalPages,
+          total: data.total || 0,
+          page: data.page || 1,
+          limit: data.limit || 10,
+          totalPages: data.totalPages || 0,
         },
         isLoading: false,
       });
@@ -132,9 +140,13 @@ export const useReservationsStore = create<ReservationsState>()((set) => ({
   updateReservationStatus: async (id: string, status: ReservationStatus) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.patch<Reservation>(`/reservations/${id}/status`, { status });
+      // Use the correct endpoint based on the status
+      const endpoint = status === 'confirmed' ? `/reservations/${id}/confirm` :
+                       status === 'refused' ? `/reservations/${id}/refuse` :
+                       `/reservations/${id}/cancel`;
+      const response = await api.patch<Reservation>(endpoint);
       set((state) => ({
-        reservations: state.reservations.map((r) => 
+        reservations: (state.reservations || []).map((r) => 
           (r.id === id || r._id === id ? response.data : r)
         ),
         currentReservation: response.data,
@@ -153,10 +165,10 @@ export const useReservationsStore = create<ReservationsState>()((set) => ({
     try {
       const response = await api.patch<Reservation>(`/reservations/${id}/cancel`);
       set((state) => ({
-        myReservations: state.myReservations.map((r) => 
+        myReservations: (state.myReservations || []).map((r) => 
           (r.id === id || r._id === id ? response.data : r)
         ),
-        reservations: state.reservations.map((r) => 
+        reservations: (state.reservations || []).map((r) => 
           (r.id === id || r._id === id ? response.data : r)
         ),
         isLoading: false,
@@ -174,8 +186,8 @@ export const useReservationsStore = create<ReservationsState>()((set) => ({
     try {
       await api.delete(`/reservations/${id}`);
       set((state) => ({
-        reservations: state.reservations.filter((r) => r.id !== id && r._id !== id),
-        myReservations: state.myReservations.filter((r) => r.id !== id && r._id !== id),
+        reservations: (state.reservations || []).filter((r) => r.id !== id && r._id !== id),
+        myReservations: (state.myReservations || []).filter((r) => r.id !== id && r._id !== id),
         isLoading: false,
       }));
     } catch (error: unknown) {
