@@ -49,60 +49,66 @@ export const useEventsStore = create<EventsState>()((set, get) => ({
   fetchPublishedEvents: async (params?: QueryParams) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get<PaginatedResponse<Event>>('/events', { params });
+      const response = await api.get('/events', { params });
+      const data = response.data;
+      const eventsArray = data?.events || data?.data || (Array.isArray(data) ? data : []);
       set({
-        events: response.data.data,
+        events: Array.isArray(eventsArray) ? eventsArray : [],
         pagination: {
-          total: response.data.total,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: response.data.totalPages,
+          total: data?.total || 0,
+          page: data?.page || 1,
+          limit: data?.limit || 10,
+          totalPages: data?.totalPages || 0,
         },
         isLoading: false,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erreur lors du chargement des événements';
-      set({ error: message, isLoading: false });
+      set({ error: message, isLoading: false, events: [] });
     }
   },
 
   fetchAllEvents: async (params?: QueryParams) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get<PaginatedResponse<Event>>('/events/admin/all', { params });
+      const response = await api.get('/events/admin/all', { params });
+      const data = response.data;
+      const eventsArray = data?.events || data?.data || (Array.isArray(data) ? data : []);
       set({
-        events: response.data.data,
+        events: Array.isArray(eventsArray) ? eventsArray : [],
         pagination: {
-          total: response.data.total,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: response.data.totalPages,
+          total: data?.total || 0,
+          page: data?.page || 1,
+          limit: data?.limit || 10,
+          totalPages: data?.totalPages || 0,
         },
         isLoading: false,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erreur lors du chargement des événements';
-      set({ error: message, isLoading: false });
+      set({ error: message, isLoading: false, events: [] });
     }
   },
 
   fetchMyEvents: async (params?: QueryParams) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get<PaginatedResponse<Event>>('/events/my-events', { params });
+      const response = await api.get('/events/my-events', { params });
+      const data = response.data;
+      const eventsArray = data?.events || data?.data || (Array.isArray(data) ? data : []);
       set({
-        events: response.data.data,
+        events: Array.isArray(eventsArray) ? eventsArray : [],
         pagination: {
-          total: response.data.total,
-          page: response.data.page,
-          limit: response.data.limit,
-          totalPages: response.data.totalPages,
+          total: data?.total || 0,
+          page: data?.page || 1,
+          limit: data?.limit || 10,
+          totalPages: data?.totalPages || 0,
         },
         isLoading: false,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erreur lors du chargement des événements';
-      set({ error: message, isLoading: false });
+      set({ error: message, isLoading: false, events: [] });
     }
   },
 

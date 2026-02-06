@@ -115,7 +115,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="divide-y divide-gray-100">
-              {events.slice(0, 5).map((event: Event) => (
+              {(events || []).slice(0, 5).map((event: Event) => (
                 <Link
                   key={event.id || event._id}
                   href={`/dashboard/admin/events/${event.id || event._id}`}
@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </Link>
               ))}
-              {events.length === 0 && (
+              {(events || []).length === 0 && (
                 <div className="p-8 text-center text-gray-500">
                   Aucun événement
                 </div>
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="divide-y divide-gray-100">
-              {reservations.slice(0, 5).map((reservation: Reservation) => {
+              {(reservations || []).slice(0, 5).map((reservation: Reservation) => {
                 const event = reservation.event as Event;
                 const participant = reservation.participant as { name?: string; email?: string };
                 return (
@@ -194,7 +194,7 @@ export default function AdminDashboardPage() {
                   </div>
                 );
               })}
-              {reservations.length === 0 && (
+              {(reservations || []).length === 0 && (
                 <div className="p-8 text-center text-gray-500">
                   Aucune réservation
                 </div>

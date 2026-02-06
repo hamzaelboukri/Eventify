@@ -40,7 +40,7 @@ async function getEvents(searchParams: { [key: string]: string | string[] | unde
     return await response.json();
   } catch (error) {
     console.error('Error fetching events:', error);
-    return { data: [], total: 0, page: 1, limit: 12, totalPages: 0 };
+    return { events: [], data: [], total: 0, page: 1, limit: 12, totalPages: 0 };
   }
 }
 
@@ -86,12 +86,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
           
           <Suspense fallback={<div className="flex justify-center py-12"><Spinner size="lg" /></div>}>
             <EventsListClient 
-              initialEvents={eventsData.data}
+              initialEvents={eventsData.events || eventsData.data || []}
               initialPagination={{
-                total: eventsData.total,
-                page: eventsData.page,
-                limit: eventsData.limit,
-                totalPages: eventsData.totalPages,
+                total: eventsData.total || 0,
+                page: eventsData.page || 1,
+                limit: eventsData.limit || 12,
+                totalPages: eventsData.totalPages || 0,
               }}
               categories={categories}
             />
