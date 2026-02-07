@@ -11,6 +11,7 @@ interface EventsGridProps {
   showStatus?: boolean;
   isAdmin?: boolean;
   emptyMessage?: string;
+  reservedEventIds?: string[];
 }
 
 export default function EventsGrid({
@@ -19,6 +20,7 @@ export default function EventsGrid({
   showStatus = false,
   isAdmin = false,
   emptyMessage = 'Aucun événement trouvé',
+  reservedEventIds = [],
 }: EventsGridProps) {
   if (isLoading) {
     return (
@@ -44,6 +46,7 @@ export default function EventsGrid({
           event={event}
           showStatus={showStatus}
           isAdmin={isAdmin}
+          isReserved={reservedEventIds.includes(event.id ?? event._id ?? '')}
         />
       ))}
     </div>
