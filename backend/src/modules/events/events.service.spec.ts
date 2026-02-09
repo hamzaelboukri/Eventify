@@ -236,7 +236,7 @@ describe('EventsService', () => {
         }),
       });
 
-      const result = await service.publish(mockEventId, mockOrganizerId, true);
+      await service.publish(mockEventId, mockOrganizerId, true);
       expect(draftEvent.save).toHaveBeenCalled();
     });
   });
