@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useReservationsStore } from '@/store/reservationsStore';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Image } from 'next/image';
 import { Event, EventStatus } from '@/types';
 import { Card, CardContent, Badge } from '@/components/ui';
 import Toast from '@/components/ui/Toast';
@@ -68,10 +69,12 @@ export default function EventCard({
           {/* Image */}
           <div className="relative h-48 bg-gradient-to-br from-primary-500 to-secondary-500">
             {event.image && (
-              <img
+              <Image
                 src={event.image}
                 alt={event.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-t-lg"
+                width={600}
+                height={200}
               />
             )}
 
@@ -166,3 +169,6 @@ export default function EventCard({
     </>
   );
 }
+
+// Set displayName for ESLint
+EventCard.displayName = 'EventCard';

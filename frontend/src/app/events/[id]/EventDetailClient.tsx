@@ -12,6 +12,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useReservationsStore } from '@/store/reservationsStore';
 import { formatDateTime, getAvailableSpots, getFillRate, cn } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/utils';
+import Image from 'next/image';
 
 interface EventDetailClientProps {
   event: Event;
@@ -82,10 +83,12 @@ export default function EventDetailClient({ event }: EventDetailClientProps) {
           {/* Hero Image */}
           <div className="relative h-64 sm:h-96 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl overflow-hidden mb-6">
             {event.image && (
-              <img
+              <Image
                 src={event.image}
                 alt={event.title}
                 className="w-full h-full object-cover"
+                width={600}
+                height={200}
               />
             )}
             <div className="absolute top-4 left-4">
