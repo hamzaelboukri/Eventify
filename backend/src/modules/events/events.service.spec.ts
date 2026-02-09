@@ -18,6 +18,16 @@ MockEventModel.aggregate = jest.fn();
 MockEventModel.create = jest.fn();
 MockEventModel.exec = jest.fn();
 
+// Add this for compatibility with existing test code
+const mockEventModel = MockEventModel;
+mockEventModel.find = MockEventModel.find;
+mockEventModel.findById = MockEventModel.findById;
+mockEventModel.findByIdAndDelete = MockEventModel.findByIdAndDelete;
+mockEventModel.countDocuments = MockEventModel.countDocuments;
+mockEventModel.aggregate = MockEventModel.aggregate;
+mockEventModel.create = MockEventModel.create;
+mockEventModel.exec = MockEventModel.exec;
+
 describe('EventsService', () => {
   let service: EventsService;
   let model: Model<Event>;

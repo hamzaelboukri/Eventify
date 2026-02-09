@@ -125,27 +125,29 @@ function EventCard({
               <div className="flex justify-between text-sm mb-2">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  {availableSpots > 0
-                    ? `${availableSpots} places disponibles`
-                    : 'Complet'}
+                  {availableSpots === 0 ? (
+                    <span>Complet</span>
+                  ) : (
+                    <span>{availableSpots} places disponibles</span>
+                  )}
                 </div>
                 <span className="font-medium text-primary-600">
                   {fillRate}%
                 </span>
               </div>
-
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={cn(
-                    'h-2 rounded-full',
-                    fillRate >= 90
-                      ? 'bg-red-500'
-                      : fillRate >= 70
-                      ? 'bg-yellow-500'
-                      : 'bg-primary-500'
-                  )}
+                  className="h-2 rounded-full bg-primary-500"
                   style={{ width: `${fillRate}%` }}
                 />
+              </div>
+              {/* Price or Gratuit */}
+              <div className="mt-2 text-right">
+                {event.price && event.price !== 'Gratuit' && event.price !== 0 ? (
+                  <span>{event.price} €</span>
+                ) : (
+                  <span>Gratuit</span>
+                )}
               </div>
             </div>
 
