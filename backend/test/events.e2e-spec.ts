@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { MongooseModule } from '@nestjs/mongoose';
+
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { JwtService } from '@nestjs/jwt';
 import { AppModule } from '../src/app.module';
@@ -15,7 +15,7 @@ describe('Events (e2e)', () => {
   let adminToken: string;
   let participantToken: string;
   let adminUserId: string;
-  let participantUserId: string;
+
   let createdEventId: string;
 
   beforeAll(async () => {

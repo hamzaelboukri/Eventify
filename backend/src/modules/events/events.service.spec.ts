@@ -93,7 +93,7 @@ describe('EventsService', () => {
       const mockSave = jest.fn().mockResolvedValue(savedEvent);
       (model as any).prototype = { save: mockSave };
 
-      const result = await service.create(createEventDto, mockOrganizerId);
+        await service.create(createEventDto, mockOrganizerId);
       
       expect(result).toBeDefined();
     });

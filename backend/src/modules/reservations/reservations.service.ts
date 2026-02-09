@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Reservation, ReservationStatus } from './schemas/reservation.schema';
 import { Event, EventStatus } from '../events/schemas/event.schema';
-import { CreateReservationDto, UpdateReservationDto } from './dto';
+import { CreateReservationDto } from './dto';
 
 export interface PaginatedReservations {
   reservations: Reservation[];
