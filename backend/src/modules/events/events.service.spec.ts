@@ -5,6 +5,19 @@ import { EventsService } from './events.service';
 import { Event, EventStatus } from './schemas/event.schema';
 import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 
+// Mock EventModel as a constructor function
+function MockEventModel(this: any, data: any) {
+  Object.assign(this, data);
+  this.save = jest.fn().mockResolvedValue(this);
+}
+MockEventModel.find = jest.fn();
+MockEventModel.findById = jest.fn();
+MockEventModel.findByIdAndDelete = jest.fn();
+MockEventModel.countDocuments = jest.fn();
+MockEventModel.aggregate = jest.fn();
+MockEventModel.create = jest.fn();
+MockEventModel.exec = jest.fn();
+
 describe('EventsService', () => {
   let service: EventsService;
   let model: Model<Event>;
@@ -28,25 +41,13 @@ describe('EventsService', () => {
     toJSON: jest.fn().mockReturnValue(this),
   };
 
-  const mockEventModel = {
-    new: jest.fn().mockResolvedValue(mockEvent),
-    constructor: jest.fn().mockResolvedValue(mockEvent),
-    find: jest.fn(),
-    findById: jest.fn(),
-    findByIdAndDelete: jest.fn(),
-    countDocuments: jest.fn(),
-    aggregate: jest.fn(),
-    create: jest.fn(),
-    exec: jest.fn(),
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventsService,
         {
           provide: getModelToken(Event.name),
-          useValue: mockEventModel,
+          useValue: MockEventModel,
         },
       ],
     }).compile();
