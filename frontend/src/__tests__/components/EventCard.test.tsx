@@ -1,3 +1,5 @@
+/* eslint-disable react/display-name */
+// eslint-disable-next-line react/display-name
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import EventCard from '@/components/events/EventCard';

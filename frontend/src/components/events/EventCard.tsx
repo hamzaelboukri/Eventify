@@ -18,7 +18,7 @@ interface EventCardProps {
   isReserved?: boolean;
 }
 
-export default function EventCard({
+function EventCard({
   event,
   showStatus = false,
   isAdmin = false,
@@ -170,5 +170,5 @@ export default function EventCard({
   );
 }
 
-// Set displayName for ESLint
 EventCard.displayName = 'EventCard';
+export default EventCard;
