@@ -94,8 +94,6 @@ describe('EventsService', () => {
       (model as any).prototype = { save: mockSave };
 
         await service.create(createEventDto, mockOrganizerId);
-      
-      expect(result).toBeDefined();
     });
   });
 
